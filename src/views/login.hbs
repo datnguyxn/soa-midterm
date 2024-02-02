@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        .footer {
+            display: none;
+        }
+
+        .navbar {
+            display: none;
+        }
+    </style>
+    <link href="css/style.css" rel="stylesheet">
+</head>
+
+<body>
+    <section class="login-box">
+        <div class="form-box">
+            <div class="form-value">
+                <form action="/login" method="Post">
+                    <h2>Login</h2>
+                    <div class="inputbox">
+                        <ion-icon name="person-outline"></ion-icon>
+                        <input type="text" name="username" required>
+                        <label for="">Username</label>
+                    </div>
+                    <div class="inputbox">
+                        <ion-icon name="lock-closed-outline"></ion-icon>
+                        <input type="password" name="password" required>
+                        <label for="">Password</label>
+                    </div>
+
+                    <button type="submit" class="button1"> Log in</button>
+                    <div class="register">
+                        <p>Don't have a account <a href="/register">Register</a></p>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </section>
+    {{#if message }}
+    <div class="alert alert-dismissible fade show alert-{{message.type}} fixed-bottom" role="alert"
+        style="position: fixed;bottom: 10px;left: auto;z-index: 1000;width: 30%;margin-bottom: 40px;height: 60px;">
+        <button type="button" class="close" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+        <strong style="margin-top: 10px;font-size:15px;"> {{message.message}} </strong>
+    </div>
+    {{/if}}
+</body>
+
+<script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
+<script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
+
+</html>

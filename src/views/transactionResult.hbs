@@ -1,0 +1,56 @@
+<div class="container mt-5">
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h2 class="mb-0">Giao Dịch Thành Công</h2>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h4 class="mb-3">Thông Tin Thanh Toán</h4>
+                    <dl class="row">
+                        <dt class="col-sm-4">Tài khoản nguồn</dt>
+                        <dl class="row">
+                            <dd class="col-sm-8">{{user.phone}}</dd>
+                            <dd class="col-sm-8">{{user.fullname}}</dd>
+                        </dl>
+
+                        <dt class="col-sm-4">Nội dung:</dt>
+                        <dd class="col-sm-8">{{transaction.transfer_content}}</dd>
+
+                        <dt class="col-sm-4">Thời gian:</dt>
+                        <dd class="col-sm-8">{{transaction_time}}</dd>
+
+                        <dt class="col-sm-4">Số Tiền Thanh Toán:</dt>
+                        <dd class="col-sm-8">{{amount}}</dd>
+                    </dl>
+                </div>
+                <div class="col-md-6">
+                    <div class="alert alert-success" role="alert">
+                        Cảm ơn bạn đã sử dụng dịch vụ của chúng tôi.
+                        <br>
+                        <b>
+                            Bạn sẽ được tự động chuyển về trang chủ sau
+                            <span id="countdown" style="color: brown;">10</span> giây.
+                        </b>
+
+                    </div>
+                </div>
+            </div>
+            <hr>
+        </div>
+    </div>
+</div>
+
+<script>
+    let seconds = 10;
+    function updateCountdown() {
+        $("#countdown").text(seconds);
+        seconds--;
+        if (seconds < 0) {
+            window.location.href = "/";
+        } else {
+            setTimeout(updateCountdown, 1000);
+        }
+    }
+    setTimeout(updateCountdown, 1000);
+</script>

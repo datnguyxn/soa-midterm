@@ -1,0 +1,150 @@
+<style>
+    .li {
+        font-size: 18px;
+        font-weight: bold;
+    }
+</style>
+<div class="container otp-confirmation-container">
+    <h2 class="title mb-5 text-center">Nhập mã OTP</h2>
+    <div class="row">
+        <div class="col-4">
+            <ul>
+                <li class="li mb-3">Hãy kiểm tra email của bạn để lấy mã OTP</li>
+                <li class="li mb-3">Mã OTP gồm có 6 kí tự</li>
+                <li class="li mb-3">Mã OTP chỉ có hiệu lực trong 1 phút. Hệ thống không chấp nhận mã OTP nếu quá thời
+                    hạn hiệu lực.</li>
+                <li class="li mb-3">Trường hợp quá thời gian hiệu lực hãy yêu cầu gửi lại mã</li>
+                <li class="li mb-3">Trường hợp nhập sai mã quá 3 lần sẽ tự động đăng xuất tài khoản</li>
+            </ul>
+        </div>
+        <div class="col-8">
+            <div>
+                <div class="form-group">
+                    <div class="row justify-content-center">
+                        <label for="otp" class="text-center mr-2">Nhập mã OTP: </label>
+                        <span id="otp-timer">Thời gian hiệu lực: giây</span>
+
+                    </div>
+                    <div class="row justify-content-center">
+                        <input type="text" class="form-control text-center font-weight-bold" id="otp" name="otp"
+                            required style="width:60%">
+                    </div>
+                    <div class="row justify-content-center">
+                        {{!-- <button type="submit " class="btn btn-primary mt-2 mr-2">Xác nhận</button> --}}
+                        <a href="" id="btn_confirm" class="btn btn-primary mt-2 mr-2" role="button"
+                            aria-disabled="true">Xác nhận </a>
+                        <button type="submit " class="btn btn-info mt-2" id="btn_resend" disabled>Gửi lại mã</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    {{#if message }}
+    <div id="msg" class="alert alert-dismissible fade show alert-{{message.type}} fixed-bottom" role="alert"
+        style="position: fixed;bottom: 10px;left: auto;z-index: 1000;width: 30%;margin-bottom: 65px;height: 60px;">
+        <button type="button" class="btn-close close" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+        <strong style="margin-top: 10px;font-size:15px;"> {{message.message}} </strong>
+    </div>
+    {{/if}}
+
+
+
+    <script>
+
+        $(document).ready(function () {
+            var hasReloaded = localStorage.getItem('hasReloaded');
+            if (!hasReloaded) {
+                window.onload = function () {
+                    localStorage.setItem('hasReloaded', 'true');
+                    window.location.reload();
+                };
+            }
+            let temp = {{ remainingTime }}
+            let remainingTime = temp;
+            console.log(remainingTime)
+            const timerElement = $("#otp-timer");
+
+            function updateTimer() {
+                if (remainingTime > 0) {
+                    const seconds = Math.ceil(remainingTime / 1000);
+                    timerElement.text(`Thời gian hiệu lực: ${seconds} giây`);
+                    remainingTime -= 1000;
+                } else {
+                    timerElement.text('Hết thời gian hiệu lực');
+                    $('#btn_resend').removeAttr('disabled');
+                }
+
+            }
+            updateTimer();
+            const timerInterval = setInterval(updateTimer, 1000);
+            if (remainingTime <= 0) {
+                clearInterval(timerInterval);
+            }
+            $(window).on("beforeunload", function () {
+                clearInterval(timerInterval);
+            });
+
+            $("#btn_resend").click(function () {
+                window.location.reload();
+                const currentURL = window.location.href;
+
+                const confirmIndex = currentURL.indexOf('/confirm/');
+
+
+                if (confirmIndex !== -1) {
+
+                    const id = currentURL.substring(confirmIndex + '/confirm/'.length);
+                    $.ajax({
+                        url: '/confirm/resend-otp/' + id,
+                        method: 'POST',
+                        contentType: 'application/json',
+                        success: function (data) {
+                            if (data.success) {
+                                remainingTime = data.remainingTime;
+                                updateTimer();
+                            } else {
+                                console.log(data.message);
+                            }
+                        },
+                        error: function (error) {
+                            console.error('Error resending OTP:', error);
+                        }
+                    });
+                } else {
+                    console.error('Invalid URL format');
+                }
+            })
+
+
+            $(".btn-close").click(function () {
+                $("#msg").alert('close');
+            });
+            $("#btn_confirm").click(function () {
+                const otpValue = $("#otp").val();
+                if (!otpValue) {
+                    return;
+                }
+                $.ajax({
+                    url: '/confirm/verify-otp',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ otp: otpValue }),
+                    success: function (data) {
+                        console.log(data)
+                        if (data.success) {
+                            window.location.href = "/transaction/" + data.transaction_id;
+                        } else {
+                            console.log(data.message);
+                        }
+                    },
+                    error: function (error) {
+                        console.error('Error verifying OTP:', error);
+                    }
+                });
+            });
+        })
+    </script>
