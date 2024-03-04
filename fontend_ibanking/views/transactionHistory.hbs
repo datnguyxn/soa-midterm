@@ -1,0 +1,61 @@
+<form action="/transaction-history" method="GET" class="mb-3 mt-2" style="width:30%; float:right">
+    <div class="input-group">
+        <input type="text" class="form-control" placeholder="Tìm kiếm loại học phí" name="search" value="{{search}}">
+        <button type="submit" class="btn btn-primary">Tìm kiếm</button>
+    </div>
+</form>
+
+<table class="table">
+    <thead class="thead-light">
+        <tr>
+            <th scope="col">#</th>
+            <th scope="col">Mã giao dịch</th>
+            <th scope="col">Loại học phí</th>
+            <th scope="col">Số tiền</th>
+            <th scope="col">Khoảng thời gian</th>
+        </tr>
+    </thead>
+    {{#each transactions}}
+    <tbody>
+        <tr>
+            <th scope="row">{{@index}}</th>
+            <td>{{this._id}}</td>
+            <td>{{this.transfer_content}}</td>
+            <td>{{this.amount}}</td>
+            <td>{{this.created}}</td>
+        </tr>
+    </tbody>
+    {{/each}}
+</table>
+
+<div class="d-flex justify-content-center">
+    <ul class="pagination">
+        {{#if pagination.prevPage}}
+        <li class="page-item">
+            <a class="page-link"
+                href="/transaction-history?page={{pagination.prevPage}}&pageSize={{pagination.pageSize}}&search={{search}}">
+                Previous
+            </a>
+        </li>
+        {{/if}}
+
+        {{#each pagination.pages}}
+        <li class="page-item {{#if this.isCurrent}}active{{/if}}">
+            <a class="page-link"
+                href="/transaction-history?page={{this.page}}&pageSize={{pagination.pageSize}}&search={{search}}">
+                {{this.page}}
+            </a>
+        </li>
+        {{/each}}
+
+
+        {{#if pagination.nextPage}}
+        <li class="page-item">
+            <a class="page-link"
+                href="/transaction-history?page={{pagination.nextPage}}&pageSize={{pagination.pageSize}}&search={{search}}">
+                Next
+            </a>
+        </li>
+        {{/if}}
+    </ul>
+</div>

@@ -1,0 +1,241 @@
+<style>
+    .title {
+        color: black;
+    }
+</style>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<div class="payment-container container">
+    <h2 class="title mb-3 text-center">Đóng Học Phí</h2>
+    <div class="row">
+        <form class="col">
+            <!-- Phần Người nộp tiền -->
+            <h3>Thông tin tài khoản</h3>
+            <div class="form-group">
+                <label for="fullname">Họ và Tên:</label>
+                <input type="text" id="fullname" name="fullname" class="form-control" value="{{fullname}}" disabled>
+            </div>
+            <div class="form-group">
+                <label for="phoneNum">Số điện thoại:</label>
+                <input type="text" id="phoneNum" name="phoneNum" class="form-control" value="{{phone}}" disabled>
+            </div>
+            <div class="form-group">
+                <label for="email">Email:</label>
+                <input type="text" id="email" name="email" class="form-control" value="{{email}}" disabled>
+            </div>
+
+
+            <!-- Phần Thông tin thanh toán -->
+            <div class="form-group">
+                <label for="available-balance">Số dư khả dụng:</label>
+                <input type="text" id="available-balance" name="available-balance" class="form-control"
+                    value="{{balance}}" disabled>
+            </div>
+        </form>
+
+        <!-- Phần Thông tin học phí -->
+        <div class="col" id="paymentForm">
+            <h3>Thông tin học phí</h3>
+
+
+            <div class="form-group">
+                <label>Mã số sinh viên:</label>
+                <div class="input-group">
+                    <input type="text" id="student-id" class="form-control" required>
+                    <button id="btn-find" class=" btn btn-primary ml-4"><i class="fas fa-search"></i>Tìm</button>
+                </div>
+            </div>
+
+            <div class="form-group" id="div_name" style="display: none;">
+                <label>Họ tên sinh viên</label>
+                <div class="input-group">
+                    <input type="text" id="student-name" class="form-control" disabled>
+                </div>
+            </div>
+
+
+            <div class="form-group">
+                <label for="type-tuition">Loại học phí:</label>
+                <select id="type-tuition" name="type-tuition" class="form-control">
+                    <option value="x">Các loại học phí ...</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="transfer-content">Nội dung chuyển khoản:</label>
+                <input type="text" id="transfer-content" name="transfer-content" class="form-control" required>
+            </div>
+            <!-- Phần Thông tin thanh toán -->
+            <div class="form-group">
+                <label for="payment-amount">Số tiền cần thanh toán:</label>
+                <input type="text" id="payment-amount" name="payment-amount" class="form-control"
+                    placeholder="Số tiền thanh toán" disabled>
+                <div class="row justify-content-center">
+                    <p style="display: none;" id="_id">{{id}}</p>
+                    <p style="display: none;" id="tuition_id"></p>
+
+                    <a href="/payment/otp-page" class="btn btn-primary btn-lg disabled mt-3" role="button"
+                        aria-disabled="true" id="confirmPaymentBtn">Xác
+                        nhận thanh toán</a>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+    <div id="msg" class="alert alert-dismissible fade show alert-danger fixed-bottom" role="alert"
+        style="display:none;position: fixed;bottom: 10px;left: auto;z-index: 1000;width: 30%;margin-bottom: 65px;height: 60px;">
+        <button type="button" class="btn-close close" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+        <strong style="margin-top: 10px;font-size:15px;" class="msg-toast"> Vui lòng nhập đầy đủ thông tin </strong>
+    </div>
+</div>
+<script>
+    $(document).ready(function () {
+
+        function showToast(msg) {
+            $('#msg .msg-toast').text(msg);
+            $('#msg').css("display", "block");
+            setTimeout(function () {
+                $('#msg').css("display", "none");
+            }, 3000);
+        }
+
+        $(".btn-close").click(function () {
+            $("#msg").alert('close');
+        });
+
+        $('#btn-find').click(function () {
+            const studentId = $('#student-id').val();
+            $.ajax({
+                url: '/getTuitionInfo/' + studentId,
+                method: 'GET',
+                contentType: "application/json",
+                success: function (data) {
+                    console.log(data)
+                    const typeTuitionSelect = $('#type-tuition');
+                    $('#tuition_id').text(data.tuition_id)
+                    $('#div_name').css("display", "block")
+                    $('#student-name').val(data.fullname)
+
+                    if (data.tuitionInfoDetails.length === 0) {
+                        typeTuitionSelect.html('<option value="x">Đã đóng học phí</option>');
+                    } else {
+                        typeTuitionSelect.html('<option value="x">Chọn ...</option>');
+
+                        // Add options based on the retrieved data
+                        $.each(data.tuitionInfoDetails, function (index, item) {
+                            // Append each option to the select
+                            typeTuitionSelect.append($('<option>', {
+                                value: item.amount,
+                                text: item.type,
+                            }));
+                        });
+                    }
+
+                },
+                error: function (error) {
+                    console.error('Error fetching tuition information:', error);
+                    const typeTuitionSelect = $('#type-tuition');
+                    typeTuitionSelect.html('<option value="x">không tìm thấy ...</option>');
+                    $('#div_name').css("display", "none")
+
+                    showToast("Không tìm thấy sinh viên ")
+                }
+            });
+        });
+
+        $('#type-tuition').change(function () {
+            const balance = $('#available-balance').val();
+            const transferContent = $('#transfer-content');
+            const studentId = $('#student-id').val();
+            const selectedType = $(this).find(":selected").text();
+            console.log(selectedType)
+            if (selectedType === "Chọn ...") {
+                transferContent.val(studentId);
+            } else {
+                transferContent.val(studentId + "_DongHocPhi_" + selectedType);
+            }
+            const selectedAmount = $(this).val();
+
+            if (selectedAmount === null || selectedAmount === undefined || selectedAmount === "x") {
+                $('#payment-amount').val("");
+            } else {
+                $('#payment-amount').val(formatCurrency(selectedAmount));
+            }
+            const paymentAmountValue = $('#payment-amount').val();
+            paymentAmountValueParse = parseCurrencyToNumber(paymentAmountValue)
+            balanceParse = parseCurrencyToNumber(balance)
+
+            if ((paymentAmountValue !== undefined && paymentAmountValue !== null && paymentAmountValue !== "") && balanceParse >= paymentAmountValueParse && transferContent !== "") {
+                //$('#confirmPaymentBtn').removeAttr('disabled');
+                $('#confirmPaymentBtn').removeClass('disabled');
+            } else {
+                $('#confirmPaymentBtn').addClass('disabled');
+            }
+        });
+
+        $('#confirmPaymentBtn').click(function () {
+            const paymentAmountValue = $('#payment-amount').val();
+            const transferContent = $('#transfer-content').val();
+            if (!paymentAmountValue || !transferContent) {
+                showToast("Vui lòng điền đầy đủ thông tin thanh toán");
+                return;
+            }
+
+            sendOTPRequest();
+            infoTransferContentAndIdTuition();
+        });
+
+        function infoTransferContentAndIdTuition() {
+            const tuition_id = $('#tuition_id').text()
+            const transferContent = $('#transfer-content').val();
+            const amount = $('#payment-amount').val()
+            amountParse = parseCurrencyToNumber(amount)
+            $.ajax({
+                url: '/getInfoTransfer',
+                method: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ tuition_id: tuition_id, transfer_content: transferContent, amount: amountParse}),
+                success: function (data) {
+                    console.log(data)
+                },
+                error: function (error) {
+                    console.error('Error sending OTP request:', error);
+                }
+            });
+        }
+
+        function sendOTPRequest() {
+            $.ajax({
+                url: "payment/send-otp",
+                method: 'POST',
+                contentType: 'application/json',
+                success: function (data) {
+                    console.log(data)
+                },
+                error: function (error) {
+                    console.error('Error sending OTP request:', error);
+                }
+            });
+        }
+
+        function formatCurrency(amount) {
+            const formattedAmount = new Intl.NumberFormat("vi-VN", {
+                style: "currency",
+                currency: "VND",
+            }).format(amount);
+            return formattedAmount;
+        }
+
+        function parseCurrencyToNumber(currencyString) {
+            const cleanedString = currencyString.replace(/[\.,₫]/g, '');
+            const parsedNumber = parseInt(cleanedString);
+            if (isNaN(parsedNumber)) {
+                return null;
+            }
+            return parsedNumber;
+        }
+    });
+</script>

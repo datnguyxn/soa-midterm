@@ -1,0 +1,128 @@
+<style>
+    .li {
+        font-size: 18px;
+        font-weight: bold;
+    }
+</style>
+<div class="container otp-confirmation-container">
+    <h2 class="title mb-5 text-center">Nhập mã OTP</h2>
+    <div class="row">
+        <div class="col-4">
+            <ul>
+                <li class="li mb-3">Hãy kiểm tra email của bạn để lấy mã OTP</li>
+                <li class="li mb-3">Mã OTP gồm có 6 kí tự</li>
+                <li class="li mb-3">Mã OTP chỉ có hiệu lực trong 1 phút. Hệ thống không chấp nhận mã OTP nếu quá thời
+                    hạn hiệu lực.</li>
+                <li class="li mb-3">Trường hợp quá thời gian hiệu lực hãy yêu cầu gửi lại mã</li>
+                <li class="li mb-3">Trường hợp nhập sai mã quá 3 lần sẽ tự động đăng xuất tài khoản</li>
+            </ul>
+        </div>
+        <div class="col-8">
+            <div>
+                <div class="form-group">
+                    <div class="row justify-content-center">
+                        <label for="otp" class="text-center mr-2">Nhập mã OTP: </label>
+
+
+                    </div>
+                    <div class="row justify-content-center">
+                        <input type="text" class="form-control text-center font-weight-bold" id="otp" name="otp"
+                            required style="width:60%">
+                    </div>
+                    <div class="row justify-content-center">
+                        {{!-- <a href="" id="btn_confirm" class="btn btn-primary mt-2 mr-2" role="button"
+                            aria-disabled="true">Xác nhận </a> --}}
+                        <button type="submit " class="btn btn-primary mt-2 mr-2" id="btn_confirm">Xác nhận</button>
+                        <button type="submit " class="btn btn-info mt-2" id="btn_resend">Gửi lại mã</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    {{!-- {{#if message }}
+    <div id="msg" class="alert alert-dismissible fade show alert-{{message.type}} fixed-bottom" role="alert"
+        style="position: fixed;bottom: 10px;left: auto;z-index: 1000;width: 30%;margin-bottom: 65px;height: 60px;">
+        <button type="button" class="btn-close close" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+        <strong style="margin-top: 10px;font-size:15px;"> {{message.message}} </strong>
+    </div>
+    {{/if}} --}}
+
+    <div id="msg" class="alert alert-dismissible fade show alert-danger fixed-bottom" role="alert"
+        style="display:none;position: fixed;bottom: 10px;left: auto;z-index: 1000;width: 30%;margin-bottom: 65px;height: 60px;">
+        <button type="button" class="btn-close close" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+        <strong style="margin-top: 10px;font-size:15px;" class="msg-toast"> Vui lòng nhập đầy đủ thông tin </strong>
+    </div>
+
+
+
+    <script>
+
+        function showToast(msg) {
+            $('#msg .msg-toast').text(msg);
+            $('#msg').css("display", "block");
+            setTimeout(function () {
+                $('#msg').css("display", "none");
+            }, 3000);
+        }
+
+        $(document).ready(function () {
+            $("#btn_resend").prop('disabled', true);
+
+            setTimeout(function () {
+                $("#btn_resend").prop('disabled', false);
+            }, 60000);
+
+            $("#btn_resend").click(function () {
+                $.ajax({
+                    url: '/payment/resend-otp',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    success: function (data) {
+                        console.log(data);
+                    },
+                    error: function (error) {
+                        console.error('Error resending OTP:', error);
+                    }
+                });
+            });
+
+            $(".btn-close").click(function () {
+                $("#msg").alert('close');
+            });
+            $("#btn_confirm").click(function () {
+                const otpValue = $("#otp").val();
+                if (!otpValue) {
+                    return;
+                }
+                console.log(otpValue)
+                $.ajax({
+                    url: '/payment/verify-otp',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ otp: otpValue }),
+                    success: function (data) {
+                        console.log(data)
+                        if (data.success) {
+                            window.location.href = "/transaction";
+                        } else {
+                            showToast("OTP không hợp lệ")
+                        }
+                        if (data.remainingAttempts === 0) {
+                            window.location.href = "/login";
+
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('Error verifying OTP:', error);
+                        console.log(xhr.responseText); // Log the responseText for more details
+                    }
+                });
+            });
+        })
+    </script>
