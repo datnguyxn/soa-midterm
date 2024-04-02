@@ -32,13 +32,15 @@ const getUserInfoFromAuthService = async (userId) => {
 
 const sendOTP = async (req, res) => {
   const id = req.body.id;
+  const tuitionId = req.body.tuitionId;
+  const transfer_content = req.body.transfer_content;
+  const id_content = tuitionId + "_" + transfer_content.split("_")[2];
   try {
     const userInfo = await getUserInfoFromAuthService(id);
     const email = userInfo.email;
-    const storedOTP = otpStorage[email];
+    const storedOTP = otpStorage[id_content];
     if (storedOTP && Date.now() - storedOTP.timestamp <= 60000) {
       return res
-        .status(400)
         .json({ success: false, message: "Valid OTP is still active" });
     }
 
@@ -68,16 +70,16 @@ const sendOTP = async (req, res) => {
         console.log("OTP sent:", info.response);
         res
           .status(200)
-          .json({ success: true, message: "OTP sent successfully", otp });
+          .json({ success: true, message: "OTP sent successfully", otp, time: Date.now() - storedOTP.timestamp});
       }
     });
 
-    otpStorage[email] = {
+    otpStorage[id_content] = {
       otp,
       timestamp: Date.now(),
       expiration: Date.now() + 60000,
     };
-    console.log(otpStorage[email]);
+    console.log(otpStorage[id_content]);
   } catch (error) {
     return res.status(500).send(error);
   }
@@ -85,18 +87,20 @@ const sendOTP = async (req, res) => {
 
 const resendOTP = async (req, res) => {
   const id = req.body.id;
+  const tuitionId = req.body.tuitionId;
+  const transfer_content = req.body.transfer_content;
+  const id_content = tuitionId + "_" + transfer_content.split("_")[2];
   try {
     const userInfo = await getUserInfoFromAuthService(id);
     const email = userInfo.email;
 
-    const storedOTP = otpStorage[email];
+    const storedOTP = otpStorage[id_content];
     if (storedOTP && Date.now() < storedOTP.expiration) {
       res.json({
         success: false,
         message: "Cannot resend OTP. Valid OTP is still active.",
       });
     } else {
-      const remainingTime = storedOTP.expiration - Date.now();
       await sendOTP(req, res);
       res.json({
         success: true,
@@ -154,11 +158,9 @@ const sendEmailConfirmation = async (req, res) => {
 }
 
 const updateStorage = (req, res) => {
-  const { email } = req.body;
-  console.log(otpStorage)
-  console.log(email)
+  const { id_content } = req.body;
 
-  delete otpStorage[email];
+  delete otpStorage[id_content];
   console.log(otpStorage)
 
   res.json({ success: true, message: "OTP storage updated successfully" });

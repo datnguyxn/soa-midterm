@@ -208,10 +208,15 @@
         }
 
         function sendOTPRequest() {
+            const tuition_id = $('#tuition_id').text()
+            const transferContent = $('#transfer-content').val();
             $.ajax({
                 url: "payment/send-otp",
                 method: 'POST',
                 contentType: 'application/json',
+                data: JSON.stringify({
+                    tuition_id, transfer_content: transferContent
+                }),
                 success: function (data) {
                     console.log(data)
                 },

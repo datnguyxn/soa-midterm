@@ -1,10 +1,15 @@
 const User = require("../models/user");
 const bcrypt = require("bcrypt");
+const jwt = require('jsonwebtoken');
+
 const checkLogin = async (req, res) => {
   try {
     const { username, password } = req.body;
     const user = await User.findOne({ username });
     if (user && (await bcrypt.compare(password, user.password))) {
+      // Tạo JWT
+      const token = jwt.sign({ userId: user._id }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' });
+      
       const formatedBalance = formatCurrency(user.balance);
       userInfo = {
         username: user.username,
@@ -14,11 +19,12 @@ const checkLogin = async (req, res) => {
         phone: user.phone,
         id: user._id,
       };
-
+      console.log(token)
       res.send({
         success: true,
         message: "Login successful",
         user: userInfo,
+        token: token
       });
     } else {
       // Instead of rendering, send a failure message

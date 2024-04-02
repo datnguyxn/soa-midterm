@@ -48,7 +48,7 @@ const getUserInfoFromAuthService = async (userId) => {
 
 const updateUserInfoApi = async (userId, balance) => {
   try {
-    const apiUrl = `http://localhost:3030/api/updateUserInfo/${userId}`; // Replace YOUR_PORT_NUMBER with the actual port number
+    const apiUrl = `http://localhost:3030/api/updateUserInfo/${userId}`;
 
     // Make a POST request to the updateUserInfo API endpoint
     const response = await axios.post(apiUrl, balance);

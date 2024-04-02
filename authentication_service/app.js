@@ -5,6 +5,7 @@ const session = require("express-session");
 
 const authRoute = require("./routes/authRoutes");
 const userInfoRoute = require("./routes/userInfoRoute");
+const authenticateToken = require("./middleware/authenticateToken")
 const connectDb = require("./config/dbConnection");
 connectDb();
 

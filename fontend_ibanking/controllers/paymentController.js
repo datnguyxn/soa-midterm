@@ -4,11 +4,13 @@ let tuition_id;
 let transfer_content = "";
 let amount;
 const getPayment = (req, res) => {
+  if(!req.session.user) return res.redirect("/login");
   const { fullname, email, phone, id, balance } = req.session.user;
   res.render("home_payment", { fullname, email, phone, id, balance });
 };
 
 const getTransactionPage = (req, res) => {
+  if(!req.session.user) return res.redirect("/login");
   const { transaction, transaction_time, user, fullname, id, balance, amount } =
     req.session.transaction;
   res.render("transaction_result", {
@@ -35,23 +37,38 @@ const getInfoTransfer = async (req, res) => {
   tuition_id = req.body.tuition_id;
   transfer_content = req.body.transfer_content;
   amount = req.body.amount;
+  console.log(tuition_id, transfer_content, amount);
   res.json({ tuition_id, transfer_content, amount });
 };
 
 const getOtpPage = async (req, res) => {
+  if(!req.session.user) return res.redirect("/login");
   const { fullname, balance, email, phone, id } = req.session.user;
   res.render("otp_confirmation", { fullname, email, phone, id, balance });
 };
 
 const sendOtp = async (req, res) => {
-  const apiResponse = await axios.post(
-    "http://localhost:3032/api/email/send-otp",
-    {
-      id: req.session.user.id,
+    try {
+        tuition_id = req.body.tuition_id;
+        transfer_content = req.body.transfer_content;
+      
+        const apiResponse = await axios.post(
+            "http://localhost:3032/api/email/send-otp",
+            {
+                id: req.session.user.id,
+                tuitionId: tuition_id,
+                transfer_content: transfer_content,
+            }
+        );
+        console.log(apiResponse.data);
+        return apiResponse.data;
+    } catch (error) {
+        console.error("Error sending OTP:", error);
+        res.status(500).json({
+            success: false,
+            message: "Internal Server Error",
+        });
     }
-  );
-  console.log(apiResponse.data);
-  return apiResponse.data;
 };
 
 const resendOtp = async (req, res) => {
@@ -59,6 +76,8 @@ const resendOtp = async (req, res) => {
     "http://localhost:3032/api/email/resend-otp",
     {
       id: req.session.user.id,
+      tuitionId: tuition_id,
+      transfer_content: transfer_content,
     }
   );
   console.log(apiResponse.data);

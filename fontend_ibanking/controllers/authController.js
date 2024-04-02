@@ -8,6 +8,8 @@ const getRegister = (req, res) => {
   res.render("register");
 };
 
+const activeSessions = {};
+
 const checkLogin = async (req, res) => {
   try {
     const apiResponse = await axios.post(
@@ -17,8 +19,17 @@ const checkLogin = async (req, res) => {
         password: req.body.password,
       }
     );
+
     if (apiResponse.data.success) {
-      req.session.user = apiResponse.data.user;
+      const { user, token } = apiResponse.data;
+
+      if (activeSessions[user.id]) {
+        return res.redirect("/logout");
+      }
+
+      activeSessions[user.id] = token;
+      req.session.user = user;
+
       res.redirect("/");
     } else {
       res.render("login", {
@@ -32,6 +43,10 @@ const checkLogin = async (req, res) => {
     });
   }
 };
+
+async function logoutUser(userId) {
+  delete activeSessions[userId];
+}
 
 const registerUser = async (req, res) => {
   try {
@@ -70,20 +85,24 @@ const registerUser = async (req, res) => {
   }
 };
 
-const logout = (req, res) => {
-    req.session.destroy((err) => {
-      if (err) {
-        console.error(err);
-        return res.redirect("/");
-      }
-      res.redirect("/login");
-    });
+const logout = async (req, res) => {
+  try {
+    if (req.session && req.session.user) {
+      const userId = req.session.user.id;
+      await logoutUser(userId);
+    }
+    req.session.destroy();
+    res.redirect("/login");
+  } catch (error) {
+    console.error("Lỗi đăng xuất:", error);
+    res.redirect("/");
   }
+};
 
 module.exports = {
   getLogin,
   checkLogin,
   getRegister,
   registerUser,
-  logout
+  logout,
 };

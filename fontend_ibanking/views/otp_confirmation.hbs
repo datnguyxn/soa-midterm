@@ -114,8 +114,7 @@
                             showToast("OTP không hợp lệ")
                         }
                         if (data.remainingAttempts === 0) {
-                            window.location.href = "/login";
-
+                            window.location.href = "/logout";
                         }
                     },
                     error: function (xhr, status, error) {

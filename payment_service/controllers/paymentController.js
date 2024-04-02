@@ -68,6 +68,25 @@ const updateTuitionStatus = async (tuiton_id, transfer_content) => {
   }
 };
 
+const getTuitionStatus = async (tuition_id, transfer_content) => {
+  try {
+    const tuition = await Tuition.findById(tuition_id);
+    const tuitionType = transfer_content.split("_");
+    const matchingTuition = tuition.tuitions.find(
+      (item) => item.type === tuitionType[2]
+    );
+
+    if (matchingTuition) {
+      return matchingTuition.isPaid ? "paid" : "unpaid";
+    } else {
+      return null;
+    }
+  } catch (error) {
+    console.error("Error getting tuition status:", error);
+    return null;
+  }
+}
+
 const findTuitionAmount = async (req, res) => {
   try {
     const tuition_id = req.body.tuition_id;
@@ -98,5 +117,5 @@ module.exports = {
   getTuitionInfo,
   getInfoTransaction,
   updateTuitionStatus,
-  findTuitionAmount,
+  findTuitionAmount,getTuitionStatus
 };
