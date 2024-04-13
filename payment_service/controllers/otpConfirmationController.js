@@ -23,10 +23,12 @@ const checkOTP = async (id_content, userOTP) => {
   otpStorage = await getOtpStorageFromEmailService();
   console.log(otpStorage);
   const storedOTP = otpStorage[id_content];
-  console.log(storedOTP);
   if (!storedOTP) {
+    console.log("No stored OTP found for the given id_content");
     return false;
   }
+  console.log(storedOTP);
+  console.log(storedOTP.otp);
   const isValid =
     storedOTP.otp === userOTP && Date.now() - storedOTP.timestamp <= 60000;
   if (isValid) {
@@ -40,10 +42,9 @@ const checkOTP = async (id_content, userOTP) => {
       console.error("Error updating otpStorage in emailService:", error);
       throw error;
     }
+  }  else {
+    console.log("OTP không hợp lệ hoac da het han");
   }
-  console.log("1 ", storedOTP.otp);
-  console.log("2 ", userOTP);
-
   return isValid;
 };
 
@@ -135,12 +136,13 @@ const verifyOTP = async (req, res) => {
     const id = req.body.id;
     const tuitionId = req.body.tuitionId;
     const transferContent = req.body.transferContent;
-    const id_content = tuitionId + "_" + transferContent.split("_")[2];
-    console.log(id_content);
+    const id_content = tuitionId + "_" + transferContent.split("_")[2] + "_" +  id;
+    console.log("ID_content la: ",id_content);
     const amount = req.body.amount;
     let invalidAttempts = req.session.invalidAttempts || 0;
     const isValidOTP = await checkOTP(id_content, userOTP);
-
+    console.log(isValidOTP);
+    console.log("ma ng dung nhap la: " , userOTP);
     if (isValidOTP) {
       // Thêm yêu cầu thanh toán vào hàng đợi
       paymentQueue.push({

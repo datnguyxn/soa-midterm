@@ -34,7 +34,11 @@ const sendOTP = async (req, res) => {
   const id = req.body.id;
   const tuitionId = req.body.tuitionId;
   const transfer_content = req.body.transfer_content;
-  const id_content = tuitionId + "_" + transfer_content.split("_")[2];
+  const id_content = tuitionId + "_" + transfer_content.split("_")[2] + "_" + id;
+  console.log(id);
+  console.log(tuitionId);
+  console.log(transfer_content);
+
   try {
     const userInfo = await getUserInfoFromAuthService(id);
     const email = userInfo.email;
@@ -89,7 +93,7 @@ const resendOTP = async (req, res) => {
   const id = req.body.id;
   const tuitionId = req.body.tuitionId;
   const transfer_content = req.body.transfer_content;
-  const id_content = tuitionId + "_" + transfer_content.split("_")[2];
+  const id_content = tuitionId + "_" + transfer_content.split("_")[2] + "_" + id;
   try {
     const userInfo = await getUserInfoFromAuthService(id);
     const email = userInfo.email;
@@ -104,7 +108,6 @@ const resendOTP = async (req, res) => {
       await sendOTP(req, res);
       res.json({
         success: true,
-        remainingTime,
         message: "Resend OTP successfully",
       });
     }

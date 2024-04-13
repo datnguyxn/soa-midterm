@@ -121,7 +121,6 @@ const fetchTuitionAmount = async (tuition_id, tuitionType) => {
 
 const getTransactionHistory = async (req, res) => {
   const id = req.body.id;
-  const balance = req.body.balance
   const fullname = req.body.fullname
   let { page, pageSize, search } = req.query;
   page = page ? parseInt(page, 10) : 1;
@@ -173,7 +172,6 @@ const getTransactionHistory = async (req, res) => {
   );
   return res.status(200).json({
     fullname,
-    balance,
     totalPages,
     transactions: plainTransactions,
     search,
